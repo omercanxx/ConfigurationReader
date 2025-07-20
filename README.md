@@ -2,7 +2,7 @@
 
 A robust .NET 8 configuration management system that provides database-backed configuration storage with Redis caching, real-time synchronization, and seamless integration with .NET's configuration system.
 
-## ?? Technical Highlights
+## 💼 Technical Highlights
 
 This project demonstrates proficiency in:
 
@@ -17,7 +17,7 @@ This project demonstrates proficiency in:
 - **API Design** - RESTful endpoints following HTTP conventions
 - **Configuration Management** - Custom configuration providers
 
-## ?? Problem Statement & Solution
+## 🎯 Problem Statement & Solution
 
 **Challenge**: Applications often need dynamic configuration management without redeployment, with high performance requirements and multi-environment support.
 
@@ -29,7 +29,7 @@ This project demonstrates proficiency in:
 - Integrates seamlessly with .NET's native configuration system
 - Supports multiple applications from a single management point
 
-## ?? Features
+## 🚀 Features
 
 - **Database-Backed Storage**: Store configurations in SQL Server with Entity Framework Core
 - **Redis Caching**: High-performance caching layer for optimal retrieval speed
@@ -40,20 +40,20 @@ This project demonstrates proficiency in:
 - **Type Support**: Boolean, Integer, Double, and String configuration values
 - **Strategy Pattern**: Intelligent caching strategies (filtered vs non-filtered)
 
-## ??? Architecture & Design Decisions
+## 🏗️ Architecture & Design Decisions
 
 The project follows **Clean Architecture** principles with clear separation of concerns:
 
 ```
-???????????????????????????????????????????????????????
-?                    API Layer                        ? ? Controllers, HTTP endpoints
-???????????????????????????????????????????????????????
-?               Application Layer                     ? ? Business logic, Services, Strategies
-???????????????????????????????????????????????????????
-?                 Data Layer                          ? ? Entity Framework, Repositories
-???????????????????????????????????????????????????????
-?                Common Layer                         ? ? Shared models, Utilities
-???????????????????????????????????????????????????????
+┌─────────────────────────────────────────────────────┐
+│                    API Layer                        │ ← Controllers, HTTP endpoints
+├─────────────────────────────────────────────────────┤
+│               Application Layer                     │ ← Business logic, Services, Strategies
+├─────────────────────────────────────────────────────┤
+│                 Data Layer                          │ ← Entity Framework, Repositories
+├─────────────────────────────────────────────────────┤
+│                Common Layer                         │ ← Shared models, Utilities
+└─────────────────────────────────────────────────────┘
 ```
 
 ### Key Architectural Decisions:
@@ -71,7 +71,7 @@ The project follows **Clean Architecture** principles with clear separation of c
 - **Connection Pooling**: Entity Framework connection management
 - **Configurable Sync Intervals**: Balance between freshness and performance
 
-## ?? Installation
+## 📦 Installation
 
 ### Prerequisites
 
@@ -112,7 +112,7 @@ The project follows **Clean Architecture** principles with clear separation of c
    dotnet run --project src/ConfigurationReader.API
    ```
 
-## ?? Quick Start
+## 🎯 Quick Start
 
 ### Using in a .NET Application
 
@@ -170,7 +170,7 @@ The project follows **Clean Architecture** principles with clear separation of c
    }
    ```
 
-## ?? API Usage
+## 🔧 API Usage
 
 ### Configuration Endpoints
 
@@ -215,7 +215,7 @@ DELETE /configurations/1
 | Double  | 3     | Decimal numbers   |
 | String  | 4     | Text values       |
 
-## ?? Configuration Options
+## ⚙️ Configuration Options
 
 ### ConfigurationProviderOptions
 
@@ -240,7 +240,7 @@ DELETE /configurations/1
 }
 ```
 
-## ?? How It Works
+## 🔄 How It Works
 
 1. **Configuration Storage**: Configurations are stored in SQL Server with application-specific scoping
 2. **Background Sync**: A hosted service periodically fetches configurations from the database
@@ -248,7 +248,7 @@ DELETE /configurations/1
 4. **Real-time Updates**: Changes made via API automatically invalidate cache and trigger refresh
 5. **Integration**: Custom configuration provider seamlessly integrates with .NET's `IConfiguration`
 
-## ?? Running the Example
+## 🏃 Running the Example
 
 The included console application demonstrates the usage:
 
@@ -259,7 +259,7 @@ dotnet run
 
 This will start a background service that reads the `IsBasketEnabled` configuration every second and displays its value.
 
-## ?? Testing
+## 🧪 Testing
 
 Run the test suite:
 
@@ -275,22 +275,22 @@ The tests cover:
 - Strategy pattern implementation
 - Mock-based unit testing with 90%+ coverage
 
-## ??? Development
+## 🛠️ Development
 
 ### Project Structure
 
 ```
 ConfigurationReader/
-??? src/
-?   ??? ConfigurationReader/              # Core library with custom providers
-?   ??? ConfigurationReader.API/          # REST API with Swagger documentation
-?   ??? ConfigurationReader.Application/  # Business logic & caching strategies
-?   ??? ConfigurationReader.Data/         # EF Core data access layer
-?   ??? ConfigurationReader.Common/       # Shared models and utilities
-??? example/
-?   ??? ConsoleApp/                       # Working implementation example
-??? test/
-    ??? ConfigurationReader.Tests/        # Comprehensive unit tests
+├── src/
+│   ├── ConfigurationReader/              # Core library with custom providers
+│   ├── ConfigurationReader.API/          # REST API with Swagger documentation
+│   ├── ConfigurationReader.Application/  # Business logic & caching strategies
+│   ├── ConfigurationReader.Data/         # EF Core data access layer
+│   └── ConfigurationReader.Common/       # Shared models and utilities
+├── example/
+│   └── ConsoleApp/                       # Working implementation example
+└── test/
+    └── ConfigurationReader.Tests/        # Comprehensive unit tests
 ```
 
 ### Building
@@ -307,7 +307,7 @@ Add new migration:
 dotnet ef migrations add MigrationName --project src/ConfigurationReader.Data --startup-project src/ConfigurationReader.API
 ```
 
-## ?? Production Considerations
+## 🚀 Production Considerations
 
 - **Monitoring**: Implement logging and metrics for cache hit rates and sync operations
 - **Security**: Add authentication/authorization for the management API
@@ -315,11 +315,11 @@ dotnet ef migrations add MigrationName --project src/ConfigurationReader.Data --
 - **Backup**: Regular database backups for configuration persistence
 - **Environment Isolation**: Separate configurations per environment (dev/staging/prod)
 
-## ?? License
+## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## ?? Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -327,6 +327,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 4. Add tests for new functionality
 5. Submit a pull request
 
-## ?? Support
+## 📞 Support
 
 For questions and support, please open an issue in the GitHub repository.
