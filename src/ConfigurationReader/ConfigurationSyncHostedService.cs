@@ -1,8 +1,6 @@
-﻿using ConfigurationReader.Common;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System.Globalization;
 
 namespace ConfigurationReader
@@ -14,55 +12,42 @@ namespace ConfigurationReader
         private readonly ILogger<ConfigurationSyncHostedService> logger;
         private readonly SemaphoreSlim signal = new SemaphoreSlim(0);
         private readonly CancellationTokenSource stoppingCts = new CancellationTokenSource();
-        private readonly ConfigurationSyncServiceReporter configurationSyncReporter;
-        private readonly HttpClient? httpClient;
-        private readonly string requestUri;
+        private readonly ConfigurationReader configurationReader;
         private Timer? timer;
         private Task? executingTask;
         private bool isDisposed;
 
         public ConfigurationSyncHostedService(
-            IHttpClientFactory httpClientFactory,
             IOptions<ConfigurationProviderOptions> options,
-            IConfigurationSyncServiceReporter configurationSyncServiceReporter,
             ILogger<ConfigurationSyncHostedService> logger)
         {
             this.configurationSource = ConfigurationBuilderExtensions.GetConfigurationSource();
             this.options = options.Value;
             this.logger = logger;
             string applicationName = this.options.ApplicationName ?? this.configurationSource.ApplicationName;
-            this.requestUri = $"/apps/{applicationName}/configurations";
-            this.configurationSyncReporter = (ConfigurationSyncServiceReporter)configurationSyncServiceReporter;
 
-            if (!string.IsNullOrEmpty(this.options.ConfigurationApiUrl))
-            {
-                this.httpClient = httpClientFactory.CreateClient("ConfigurationApi");
-                this.configurationSyncReporter.ConfigurationApiUrl = this.httpClient.BaseAddress?.ToString().TrimEnd('/') + this.requestUri;
-            }
-
-            this.configurationSyncReporter.ApplicationName = applicationName;
-            this.configurationSyncReporter.RefreshIntervalInSeconds = this.options.RefreshIntervalInSeconds;
+            this.configurationReader = new ConfigurationReader(applicationName, this.options.ConnectionString, this.options.RefreshIntervalInSeconds);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(this.options.ConfigurationApiUrl))
+            if (string.IsNullOrEmpty(this.configurationReader.ConnectionString))
             {
-                this.logger.LogWarning($"{nameof(ConfigurationProviderOptions)}.{nameof(ConfigurationProviderOptions.ConfigurationApiUrl)} is empty, Configurations will not be synced!");
+                this.logger.LogWarning($"{nameof(ConfigurationReader)}.{nameof(ConfigurationReader.ConnectionString)} is empty, Configurations will not be synced!");
             }
             else
             {
                 this.logger.LogInformation("Starting");
 
-                if (this.options.RefreshIntervalInSeconds <= 0)
+                if (this.configurationReader.RefreshIntervalInSeconds <= 0)
                 {
-                    this.logger.LogWarning($"{nameof(ConfigurationProviderOptions)}.{nameof(ConfigurationProviderOptions.RefreshIntervalInSeconds)} is {this.options.RefreshIntervalInSeconds}, Configurations will be get only once!");
+                    this.logger.LogWarning($"{nameof(ConfigurationReader)}.{nameof(ConfigurationReader.RefreshIntervalInSeconds)} is {this.configurationReader.RefreshIntervalInSeconds}, Configurations will be get only once!");
 
                     this.executingTask = Task.Run(this.GetConfigurationsAsync, cancellationToken);
                 }
                 else
                 {
-                    this.timer = new Timer((_) => this.signal.Release(), null, TimeSpan.Zero, TimeSpan.FromSeconds(this.options.RefreshIntervalInSeconds));
+                    this.timer = new Timer((_) => this.signal.Release(), null, TimeSpan.Zero, TimeSpan.FromSeconds(this.configurationReader.RefreshIntervalInSeconds));
 
                     this.executingTask = Task.Run(this.ExecuteAsync, cancellationToken);
                 }
@@ -112,7 +97,6 @@ namespace ConfigurationReader
                 this.stoppingCts.Dispose();
                 this.timer?.Dispose();
                 this.signal.Dispose();
-                this.httpClient?.Dispose();
             }
 
             this.isDisposed = true;
@@ -129,36 +113,18 @@ namespace ConfigurationReader
 
         private async Task GetConfigurationsAsync()
         {
-            if (this.httpClient == null)
-            {
-                throw new InvalidOperationException("httpClient is null!");
-            }
-
             DateTime? callTime = null;
             string? result = null;
 
-            ServiceResponse<List<ConfigurationDto>>? configurations = null;
+            List<ConfigurationDto>? configurations = null;
 
             try
             {
-                //var reader = new ConfigurationReader(this.configurationSyncReporter.ApplicationName, "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=Config;Integrated Security=True;Connect Timeout=30", this.configurationSyncReporter.RefreshIntervalInSeconds);
-                //var test = await reader.GetValueAsync<string>("IsBasketEnabled");
-
-                HttpResponseMessage httpResponseMessage = await this.httpClient.GetAsync(this.requestUri);
+                configurations = await this.configurationReader.GetValuesAsync();
 
                 callTime = DateTime.Now;
 
-                httpResponseMessage.EnsureSuccessStatusCode();
-
-                string response = await httpResponseMessage.Content.ReadAsStringAsync();
-                configurations = JsonConvert.DeserializeObject<ServiceResponse<List<ConfigurationDto>>>(response);
-
-                if (configurations == null)
-                {
-                    throw new JsonException("Could not convert response to List<ConfigurationDto>!");
-                }
-
-                this.configurationSource.Refresh(configurations.Result);
+                this.configurationSource.Refresh(configurations);
 
                 result = "Success";
             }
@@ -171,9 +137,9 @@ namespace ConfigurationReader
             }
             finally
             {
-                this.configurationSyncReporter.LastApiCallTime = callTime;
-                this.configurationSyncReporter.LastApiCallResult = result;
-                this.configurationSyncReporter.Configurations = configurations?.Result?.ToDictionary(f => f.Name, f => f.Value.ToString(CultureInfo.InvariantCulture));
+                this.configurationReader.LastApiCallTime = callTime;
+                this.configurationReader.LastApiCallResult = result;
+                this.configurationReader.Configurations = configurations?.ToDictionary(f => f.Name, f => f.Value.ToString(CultureInfo.InvariantCulture));
             }
         }
     }

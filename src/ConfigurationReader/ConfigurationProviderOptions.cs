@@ -7,7 +7,7 @@
         /// </summary>
         public string? ApplicationName { get; set; }
 
-        public string? ConfigurationApiUrl { get; set; }
+        public string? ConnectionString { get; set; }
 
         /// <summary>
         /// Default value is 0 (no sync).
