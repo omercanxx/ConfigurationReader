@@ -1,75 +1,48 @@
 ﻿using ConfigurationReader.Application.Constants;
+using ConfigurationReader.Application.Mappings;
 using ConfigurationReader.Application.Models;
+using ConfigurationReader.Application.Services.Interfaces;
+using ConfigurationReader.Application.Strategies.Interfaces;
 using ConfigurationReader.Common;
-using ConfigurationReader.Common.Extensions;
-using ConfigurationReader.Data.Entities;
 using ConfigurationReader.Data.Repository;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace ConfigurationReader.Application.Strategies
 {
-    public class NonFilteredConfigurationStrategy : IConfigurationFetchStrategy
+    public class NonFilteredConfigurationStrategy : IConfigurationStrategy
     {
-        private readonly IDistributedCache distributedCache;
+        private readonly IRedisCacheService redisCacheService;
         private readonly ILogger<NonFilteredConfigurationStrategy> logger;
         private readonly IConfigurationRepository configurationRepository;
 
         public NonFilteredConfigurationStrategy(
-            IDistributedCache distributedCache,
+            IRedisCacheService redisCacheService,
             ILogger<NonFilteredConfigurationStrategy> logger,
             IConfigurationRepository configurationRepository)
         {
-            this.distributedCache = distributedCache;
+            this.redisCacheService = redisCacheService;
             this.logger = logger;
             this.configurationRepository = configurationRepository;
         }
 
         public async Task<ServiceResponse<List<ConfigurationDto>>> GetAllAsync(string? name)
         {
-            var cached = await this.distributedCache.GetStringAsync(CacheKeys.AllConfigurations);
+            var cached = await this.redisCacheService.GetAsync<List<ConfigurationDto>>(CacheKeys.AllConfigurations);
 
-            if (string.IsNullOrEmpty(cached))
+            if (cached != null)
             {
-                var configurations = await this.configurationRepository.GetAllAsync(name);
-                
-                await SetToCache(configurations);
+                this.logger.LogInformation("Configurations retrieved from cache!");
 
-                return new ServiceResponse<List<ConfigurationDto>>(configurations.Result.Select(f => new ConfigurationDto
-                {
-                    Id = f.Id,
-                    Name = f.Name,
-                    Type = f.Type.ToString(),
-                    Value = f.Value,
-                    IsActive = f.IsActive,
-                    ApplicationName = f.ApplicationName,
-                    CreatedAt = f.CreatedAt.ToDateString(DateFormatExtensions.CustomDateTimeFormat),
-                    UpdatedAt = f.UpdatedAt.ToDateString(DateFormatExtensions.CustomDateTimeFormat)
-                }).ToList());
+                return new ServiceResponse<List<ConfigurationDto>>(cached);
             }
 
-            this.logger.LogInformation("Configurations retrieved from cache!");
+            var configurations = await this.configurationRepository.GetAllAsync(name);
 
-            var result = JsonConvert.DeserializeObject<ServiceResponse<List<ConfigurationDto>>>(cached);
+            var configurationDtos = configurations.Result.ToConfigurationDtoList();
 
-            if (result == null)
-            {
-                return new ServiceResponse<List<ConfigurationDto>>(new List<ConfigurationDto>());
-            }
+            await this.redisCacheService.SetAsync(CacheKeys.AllConfigurations, configurationDtos.Result, TimeSpan.FromDays(1));
 
-            return result;
-        }
-
-        private async Task SetToCache(ServiceResponse<List<ConfigurationEntity>> configurations)
-        {
-            await this.distributedCache.SetStringAsync(
-                CacheKeys.AllConfigurations,
-                JsonConvert.SerializeObject(configurations),
-                new DistributedCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromDays(1)));
-
-            this.logger.LogInformation("Configurations set to cache!");
+            return configurationDtos;
         }
     }
 }

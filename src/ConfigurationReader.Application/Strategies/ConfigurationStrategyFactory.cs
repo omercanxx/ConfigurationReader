@@ -1,9 +1,11 @@
-﻿namespace ConfigurationReader.Application.Strategies
+﻿using ConfigurationReader.Application.Strategies.Interfaces;
+
+namespace ConfigurationReader.Application.Strategies
 {
-    public class ConfigurationStrategyFactory
+    public class ConfigurationStrategyFactory 
     {
-        private readonly IConfigurationFetchStrategy nonFilteredConfigurationStrategy;
-        private readonly IConfigurationFetchStrategy filteredConfigurationStrategy;
+        private readonly IConfigurationStrategy nonFilteredConfigurationStrategy;
+        private readonly IConfigurationStrategy filteredConfigurationStrategy;
 
         public ConfigurationStrategyFactory(
             NonFilteredConfigurationStrategy nonFilteredConfigurationStrategy,
@@ -13,7 +15,7 @@
             this.filteredConfigurationStrategy = filteredConfigurationStrategy;
         }
 
-        public IConfigurationFetchStrategy GetStrategy(string? name)
+        public IConfigurationStrategy GetStrategy(string? name)
         {
             return string.IsNullOrWhiteSpace(name)
                 ? this.nonFilteredConfigurationStrategy

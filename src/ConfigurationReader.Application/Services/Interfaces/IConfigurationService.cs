@@ -1,7 +1,7 @@
 ﻿using ConfigurationReader.Application.Models;
 using ConfigurationReader.Common;
 
-namespace ConfigurationReader.Application.Services
+namespace ConfigurationReader.Application.Services.Interfaces
 {
     public interface IConfigurationService
     {

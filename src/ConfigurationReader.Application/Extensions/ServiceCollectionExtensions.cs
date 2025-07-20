@@ -1,4 +1,5 @@
 ﻿using ConfigurationReader.Application.Services;
+using ConfigurationReader.Application.Services.Interfaces;
 using ConfigurationReader.Application.Strategies;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +23,8 @@ namespace ConfigurationReader.Application.Extensions
                 options.Configuration = configuration.GetConnectionString("Redis");
             });
 
-            return services;
+            return services
+                .AddScoped<IRedisCacheService, RedisCacheService>();
         }
 
         private static IServiceCollection AddStrategyFactory(this IServiceCollection services)

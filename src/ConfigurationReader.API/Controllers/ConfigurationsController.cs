@@ -1,5 +1,5 @@
 using ConfigurationReader.Application.Models;
-using ConfigurationReader.Application.Services;
+using ConfigurationReader.Application.Services.Interfaces;
 using ConfigurationReader.Common;
 using Microsoft.AspNetCore.Mvc;
 

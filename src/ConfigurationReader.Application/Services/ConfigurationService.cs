@@ -1,13 +1,12 @@
 ﻿using ConfigurationReader.Application.Constants;
 using ConfigurationReader.Application.Models;
+using ConfigurationReader.Application.Mappings;
+using ConfigurationReader.Application.Services.Interfaces;
 using ConfigurationReader.Application.Strategies;
 using ConfigurationReader.Common;
-using ConfigurationReader.Common.Extensions;
 using ConfigurationReader.Data.Entities;
 using ConfigurationReader.Data.Repository;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace ConfigurationReader.Application.Services
 {
@@ -15,18 +14,18 @@ namespace ConfigurationReader.Application.Services
     {
         private readonly ConfigurationStrategyFactory configurationFetchStrategyFactory;
         private readonly ILogger<ConfigurationService> logger;
-        private readonly IDistributedCache distributedCache;
+        private readonly IRedisCacheService redisCacheService;
         private readonly IConfigurationRepository configurationRepository;
 
         public ConfigurationService(
-            ConfigurationStrategyFactory configurationFetchStrategyFactory,
+            IRedisCacheService redisCacheService,
             ILogger<ConfigurationService> logger,
-            IDistributedCache distributedCache,
+            ConfigurationStrategyFactory configurationFetchStrategyFactory,
             IConfigurationRepository configurationRepository)
         {
-            this.configurationFetchStrategyFactory = configurationFetchStrategyFactory;
+            this.redisCacheService = redisCacheService;
             this.logger = logger;
-            this.distributedCache = distributedCache;
+            this.configurationFetchStrategyFactory = configurationFetchStrategyFactory;
             this.configurationRepository = configurationRepository;
         }
 
@@ -40,30 +39,18 @@ namespace ConfigurationReader.Application.Services
 
         public async Task<ServiceResponse<List<ConfigurationDto>>> GetAllByApplicationNameAsync(string applicationName)
         {
-            var cachedResult = await this.distributedCache.GetStringAsync(CacheKeys.AllConfigurations);
+            var cachedResult = await this.redisCacheService.GetAsync<List<ConfigurationDto>>(CacheKeys.AllConfigurations);
 
             if (cachedResult != null)
             {
                 this.logger.LogInformation("Configurations retrieved from cache!");
 
-                var items = JsonConvert.DeserializeObject<List<ConfigurationDto>>(cachedResult);
-
-                return new ServiceResponse<List<ConfigurationDto>>(items?.Where(x => x.ApplicationName == applicationName).ToList());
+                return new ServiceResponse<List<ConfigurationDto>>(cachedResult.Where(x => x.ApplicationName == applicationName).ToList());
             }
 
             var configurations = await this.configurationRepository.GetAllByApplicationNameAsync(applicationName);
 
-            return new ServiceResponse<List<ConfigurationDto>>(configurations.Result.Select(f => new ConfigurationDto
-            {
-                Id = f.Id,
-                Name = f.Name,
-                Type = f.Type.ToString(),
-                Value = f.Value,
-                IsActive = f.IsActive,
-                ApplicationName = f.ApplicationName,
-                CreatedAt = f.CreatedAt.ToDateString(DateFormatExtensions.CustomDateTimeFormat),
-                UpdatedAt = f.UpdatedAt.ToDateString(DateFormatExtensions.CustomDateTimeFormat)
-            }).ToList());
+            return configurations.Result.ToConfigurationDtoList();
         }
 
         public async Task<ServiceResponse> CreateAsync(CreateConfigurationModel request)
@@ -76,7 +63,7 @@ namespace ConfigurationReader.Application.Services
                 ApplicationName = request.ApplicationName
             });
 
-            await this.distributedCache.RemoveAsync(CacheKeys.AllConfigurations);
+            await this.redisCacheService.RemoveAsync(CacheKeys.AllConfigurations);
 
             return new ServiceResponse();
         }
@@ -85,7 +72,7 @@ namespace ConfigurationReader.Application.Services
         {
             await this.configurationRepository.DeleteAsync(id);
 
-            await this.distributedCache.RemoveAsync(CacheKeys.AllConfigurations);
+            await this.redisCacheService.RemoveAsync(CacheKeys.AllConfigurations);
 
             return new ServiceResponse();
         }
