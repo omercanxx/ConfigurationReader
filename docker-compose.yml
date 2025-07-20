@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: my-mssql
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "YourStrong!Passw0rd", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  app:
+    build: .
+    container_name: my-dotnet-app
+    depends_on:
+      - mssql
+      - redis
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=mssql;Database=Config;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
+      ConnectionStrings__Redis: "redis:6379"
+      ASPNETCORE_ENVIRONMENT: "Development"
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+volumes:
+  mssql-data:
+  redis-data:
