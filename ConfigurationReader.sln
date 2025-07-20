@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurationReader.Common"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurationReader.Data", "src\ConfigurationReader.Data\ConfigurationReader.Data.csproj", "{562710A6-C423-06BD-A3C7-79A9E1AF5170}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A8DA5DC3-F820-4B18-BDF0-FF8B19D202B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurationReader.Tests", "test\ConfigurationReader.Tests\ConfigurationReader.Tests.csproj", "{9CF23EE4-11B0-22D4-56D2-8A6FC08B4EDB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +53,10 @@ Global
 		{562710A6-C423-06BD-A3C7-79A9E1AF5170}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{562710A6-C423-06BD-A3C7-79A9E1AF5170}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{562710A6-C423-06BD-A3C7-79A9E1AF5170}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CF23EE4-11B0-22D4-56D2-8A6FC08B4EDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CF23EE4-11B0-22D4-56D2-8A6FC08B4EDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CF23EE4-11B0-22D4-56D2-8A6FC08B4EDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CF23EE4-11B0-22D4-56D2-8A6FC08B4EDB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,6 +68,7 @@ Global
 		{4B1CE0E4-DEE3-62F8-1A39-8317F0D9D819} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{1DA6E0AA-3FEC-4BD9-267F-63FD4B587FCD} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{562710A6-C423-06BD-A3C7-79A9E1AF5170} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{9CF23EE4-11B0-22D4-56D2-8A6FC08B4EDB} = {A8DA5DC3-F820-4B18-BDF0-FF8B19D202B4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {02415F11-1B67-4213-9E64-7C4BEA932701}

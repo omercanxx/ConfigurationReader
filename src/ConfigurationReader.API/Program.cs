@@ -1,7 +1,5 @@
 using ConfigurationReader.Application.Extensions;
-using ConfigurationReader.Data;
 using ConfigurationReader.Data.Extensions;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,11 +11,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services
-    .AddServices()
-    .AddRepositories();
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    .AddServices(builder.Configuration)
+    .AddRepositories(builder.Configuration);
 
 var app = builder.Build();
 

@@ -19,7 +19,7 @@ namespace ConfigurationReader.Data
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!string.IsNullOrWhiteSpace(this.connectionString))
+            if (!string.IsNullOrEmpty(this.connectionString))
             {
                 optionsBuilder.UseSqlServer(this.connectionString);
             }
